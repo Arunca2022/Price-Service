@@ -40,7 +40,7 @@ public class PriceController {
 	}
 
 	@PostMapping("/paymentService")
-	public ResponseEntity<String> calculatePrice(@RequestBody InputRequest inputRequestDto) {
+	public ResponseEntity<String> calculatePrice(@RequestBody InputRequest inputRequestDto) throws Exception{
 
 		String processPaymentInvoice = calculateServiceImpl.processPaymentInvoice(inputRequestDto);
 

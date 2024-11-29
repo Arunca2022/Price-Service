@@ -41,7 +41,7 @@ public class SecurityConfig {
             throws Exception {
 	    return http
 	            .authorizeHttpRequests(authz -> authz
-	                    .requestMatchers("/tokenGenerate", "/welcome").permitAll() // Allow unauthenticated access to these paths
+	                    .requestMatchers("/tokenGenerate", "/welcome","*/h2-console*").permitAll() // Allow unauthenticated access to these paths
 	                    .requestMatchers("/paymentService","/getAllData").authenticated() // Require authentication for "/paymentService"
 	            )
 	            .httpBasic(withDefaults()) // Enable HTTP Basic Authentication

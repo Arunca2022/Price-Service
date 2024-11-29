@@ -1,4 +1,4 @@
-package com.price.service;
+package com.price.service.repo;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -8,30 +8,26 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.price.service.InvoiceRepository;
 import com.price.service.dto.InputRequest;
 import com.price.service.dto.InvoiceRequest;
 import com.price.service.entity.Invoice;
 import com.price.service.exception.CustomException;
 import com.price.service.service.CalculateService;
+import com.price.service.repo.InvoiceRepository;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 
 @Service
 public class CalculateServiceImpl implements CalculateService {
 
-	
 	private final String invoiceUrl = "http://localhost:8081/invoice";
-	
+
 	@Autowired
-    private InvoiceRepository invoiceRepository;
+	private InvoiceRepository invoiceRepository;
 
-
+	@Autowired
 	private RestTemplate restTemplate;
 
-	public CalculateServiceImpl(RestTemplate restTemplate) {
-		this.restTemplate = restTemplate;
-	}
 
 	@Override
 	@CircuitBreaker(name = "Price-Service", fallbackMethod = "fallbackMethod")
@@ -39,32 +35,32 @@ public class CalculateServiceImpl implements CalculateService {
 
 		// Calculate total base price from input
 		int totalBasePrice = inputRequestDto.billingLines().stream()
-				.mapToInt(billingLine -> new BigDecimal(billingLine.price_information().basePrice().amount()).intValue())
+				.mapToInt(
+						billingLine -> new BigDecimal(billingLine.price_information().basePrice().amount()).intValue())
 				.sum();
-		
+
 		try {
 			InvoiceRequest invoiceRequest = new InvoiceRequest(Integer.toString(totalBasePrice));
 
 			String postForObject = restTemplate.postForObject(invoiceUrl, invoiceRequest, String.class);
-			
-			saveToRepo(postForObject,totalBasePrice);
-			
-			
+
+			saveToRepo(postForObject, totalBasePrice);
+
 			return postForObject;
-			
+
 		} catch (CustomException e) {
-			
+
 			throw new CustomException("Invoice API error: " + e.getMessage());
 		}
 	}
 
 	private void saveToRepo(String postForObject, int totalBasePrice) {
-		
-		 Invoice invoice = new Invoice();
-		 invoice.setInvoiceId(postForObject);
-		 invoice.setTotalAmount(totalBasePrice);
-		 invoiceRepository.save(invoice);
-		
+
+		Invoice invoice = new Invoice();
+		invoice.setInvoiceId(postForObject);
+		invoice.setTotalAmount(totalBasePrice);
+		invoiceRepository.save(invoice);
+
 	}
 
 	public String fallbackMethod(Exception ex) {
@@ -76,5 +72,5 @@ public class CalculateServiceImpl implements CalculateService {
 		// TODO Auto-generated method stub
 		return invoiceRepository.findAll();
 	}
-	
+
 }
